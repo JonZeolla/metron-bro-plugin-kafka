@@ -31,6 +31,8 @@ plugin::Configuration Plugin::Configure()
     config.name = "Apache::Kafka";
     config.description = "Writes logs to Kafka";
     config.version.major = 0;
-    config.version.minor = 4.2.0;
+    config.version.minor = 4;
+    config.version.minor2 = 2;
+    config.version.minor3 = 0;
     return config;
 }
