@@ -9,8 +9,9 @@ env:
 
 before_script:
   - curl -L https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz -o /tmp/librdkafka-0.11.5.tar.gz
-  - tar -xvzf /tmp/librdkafka-0.11.5.tar.gz
-  - pushd /tmp/librdkafka-0.11.5 && ./configure --enable-sasl && make && make install && popd
+  - pushd /tmp/
+  - tar -xvzf librdkafka-0.11.5.tar.gz
+  - cd librdkafka-0.11.5/ && ./configure --enable-sasl && make && make install && popd
 
 script:
   - docker run -it --rm -v /usr/local/lib:/usr/local/lib -v `pwd`:/metron-bro-plugin-kafka broplatform/bro:${bro_version} bro-pkg test /metron-bro-plugin-kafka --version $(git rev-parse HEAD)
