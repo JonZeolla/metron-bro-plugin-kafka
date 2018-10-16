@@ -17,7 +17,7 @@ before_script:
   - ./configure && make
   - pip3 install bro-pkg
   - bro-pkg autoconfig
-  - sed -i "s|bro_dist = .*|bro_dist = ${HOME}/bro|" ${HOME}/.bro-pkg/config
+  - sed -i "s|bro_dist = .*|bro_dist = ${HOME}/src/bro|" ${HOME}/.bro-pkg/config
   - popd
   - pushd ${HOME}/src/
   - curl -L https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz | tar xvz
