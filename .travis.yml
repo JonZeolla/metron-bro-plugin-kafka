@@ -12,4 +12,4 @@ before_script:
   - pushd /tmp && tar -xvzf /tmp/librdkafka-0.11.5.tar.gz && cd librdkafka-0.11.5 && ./configure --enable-sasl && make && sudo make install && popd
 
 script:
-  - docker run -it --rm -v /usr/local/lib:/librdkafka -v `pwd`:/metron-bro-plugin-kafka -e LIBRDKAFKA_ROOT='/librdkafka' broplatform/bro:${bro_version}-dev bro-pkg test /metron-bro-plugin-kafka --version $(git rev-parse HEAD)
+  - docker run -it --rm -v /usr/local/lib:/librdkafka -v `pwd`:/metron-bro-plugin-kafka -e LIBRDKAFKA_ROOT='/librdkafka' broplatform/bro:${bro_version}-dev /bin/bash -c "apt-get -y install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev && bro-pkg test /metron-bro-plugin-kafka --version $(git rev-parse HEAD)"
