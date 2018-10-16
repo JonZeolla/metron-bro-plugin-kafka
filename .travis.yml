@@ -9,8 +9,9 @@ env:
 
 before_script:
   - sudo apt-get -y install python3-pip cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
-  - git clone https://github.com/bro/bro
-  - pushd bro
+  - mkdir -p ${HOME}/src/bro
+  - git clone https://github.com/bro/bro ${HOME}/src/bro
+  - pushd ${HOME}/src/bro
   - git checkout v${bro_version}
   - git submodule update --init --recursive
   - ./configure && make
@@ -18,8 +19,9 @@ before_script:
   - bro-pkg autoconfig
   - sed -i "s|bro_dist = .*|bro_dist = ${HOME}/bro|" ${HOME}/.bro-pkg/config
   - popd
+  - pushd ${HOME}/src/
   - curl -L https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz | tar xvz
-  - pushd librdkafka-0.11.5
+  - cd librdkafka-0.11.5
   - ./configure --enable-sasl && make && sudo make install
   - popd
 
