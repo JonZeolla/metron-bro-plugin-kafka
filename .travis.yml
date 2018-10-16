@@ -1,7 +1,8 @@
-os:
-  - linux
-    dist: trusty
-    sudo: required
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
 
 env:
   - bro_version: 2.5.5
