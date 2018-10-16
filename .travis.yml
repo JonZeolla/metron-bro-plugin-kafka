@@ -1,29 +1,16 @@
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      sudo: required
+sudo:
+  - required
+
+services:
+  - docker
 
 env:
-  - bro_version: 2.5.5
+  - bro_version: 2.5.3-dev
 
 before_script:
-  - sudo apt-get -y install python3-pip cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
-  - mkdir -p ${HOME}/src/bro
-  - git clone https://github.com/bro/bro ${HOME}/src/bro
-  - pushd ${HOME}/src/bro
-  - git checkout v${bro_version}
-  - git submodule update --init --recursive
-  - ./configure && make
-  - pip3 install bro-pkg
-  - bro-pkg autoconfig
-  - sed -i "s|bro_dist = .*|bro_dist = ${HOME}/src/bro|" ${HOME}/.bro-pkg/config
-  - popd
-  - pushd ${HOME}/src/
-  - curl -L https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz | tar xvz
-  - cd librdkafka-0.11.5
-  - ./configure --enable-sasl && make && sudo make install
-  - popd
+  - curl -L https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz -o /tmp/librdkafka-0.11.5.tar.gz
+  - tar -xvzf /tmp/librdkafka-0.11.5.tar.gz
+  - pushd /tmp/librdkafka-0.11.5 && ./configure --enable-sasl && make && sudo make install && popd
 
 script:
-  - bro-pkg test .
+  - docker run -it --rm -v /usr/local/lib:/librdkafka -v `pwd`:/metron-bro-plugin-kafka broplatform/bro:${bro_version} LIBRDKAFKA_ROOT=/librdkafka bro-pkg test /metron-bro-plugin-kafka
