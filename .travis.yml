@@ -13,4 +13,4 @@ before_script:
   - pushd /tmp/librdkafka-0.11.5 && ./configure --enable-sasl && make && sudo make install && popd
 
 script:
-  - docker run -it --rm -v /usr/local/lib:/librdkafka -v `pwd`:/metron-bro-plugin-kafka broplatform/bro:${bro_version} LIBRDKAFKA_ROOT=/librdkafka bro-pkg test /metron-bro-plugin-kafka
+  - docker run -it --rm -v /usr/local/lib:/librdkafka -v `pwd`:/metron-bro-plugin-kafka broplatform/bro:${bro_version} bro_dist=/usr/src/bro LIBRDKAFKA_ROOT=/librdkafka bro-pkg test /metron-bro-plugin-kafka
