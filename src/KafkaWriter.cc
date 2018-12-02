@@ -69,7 +69,7 @@ KafkaWriter::~KafkaWriter()
 {
 //    delete topic;
     delete producer;
-    delete formatter;
+//    delete formatter;
     delete conf;
 //    delete topic_conf;
 }
@@ -198,6 +198,7 @@ bool KafkaWriter::DoFinish(double network_time)
 
     delete topic_conf;
     delete topic;
+    delete formatter;
 
     return success;
 }
