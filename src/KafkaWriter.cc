@@ -67,11 +67,11 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend):
 
 KafkaWriter::~KafkaWriter()
 {
-//    delete topic;
-//    delete producer;
-//    delete formatter;
-//    delete conf;
-//    delete topic_conf;
+    delete topic;
+    delete producer;
+    delete formatter;
+    delete conf;
+    delete topic_conf;
 }
 
 bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
@@ -195,18 +195,6 @@ bool KafkaWriter::DoFinish(double network_time)
     } else {
         Error(Fmt("Unable to deliver %0d message(s)", producer->outq_len()));
     }
-
-    cout<<"1"<<endl;
-    delete *topic;
-    cout<<"2"<<endl;
-    delete *topic;
-    cout<<"3"<<endl;
-    delete topic;
-    delete producer;
-    delete formatter;
-    delete conf;
-    delete topic_conf;
-    cout<<"dofinish"<<endl;
 
     return success;
 }
