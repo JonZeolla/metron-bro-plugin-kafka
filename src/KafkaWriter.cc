@@ -198,6 +198,7 @@ bool KafkaWriter::DoFinish(double network_time)
 
     delete topic_conf;
     delete topic;
+    delete producer;
     delete formatter;
 
     return success;
