@@ -71,7 +71,7 @@ KafkaWriter::~KafkaWriter()
 //    delete producer;
 //    delete formatter;
 //    delete conf;
-    delete topic_conf;
+//    delete topic_conf;
 }
 
 bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
