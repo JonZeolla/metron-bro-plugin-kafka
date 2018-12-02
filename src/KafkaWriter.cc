@@ -197,11 +197,11 @@ bool KafkaWriter::DoFinish(double network_time)
         Error(Fmt("Unable to deliver %0d message(s)", producer->outq_len()));
     }
 
-    cout<<typeid(topic).name()<<endl;
+    cout<<decltype(topic)<<endl;
     delete topic;
-    cout<<typeid(topic).name()<<endl;
+    cout<<decltype(topic)<<endl;
     delete topic;
-    cout<<typeid(topic).name()<<endl;
+    cout<<decltype(topic)<<endl;
     delete producer;
     delete formatter;
     delete conf;
