@@ -67,7 +67,8 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend):
 
 KafkaWriter::~KafkaWriter()
 {
-    delete topic;
+    cout<<"destroy"<<endl;
+//    delete topic;
 //    delete producer;
 //    delete formatter;
 //    delete conf;
