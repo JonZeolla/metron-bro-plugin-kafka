@@ -16,7 +16,6 @@
  */
 
 #include "KafkaWriter.h"
-#include <typeid>
 
 using namespace logging;
 using namespace writer;
