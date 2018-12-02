@@ -71,7 +71,7 @@ KafkaWriter::~KafkaWriter()
     delete producer;
     delete formatter;
     delete conf;
-    delete topic_conf;
+//    delete topic_conf;
 }
 
 bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
@@ -195,6 +195,8 @@ bool KafkaWriter::DoFinish(double network_time)
     } else {
         Error(Fmt("Unable to deliver %0d message(s)", producer->outq_len()));
     }
+
+    delete topic_conf;
 
     return success;
 }
