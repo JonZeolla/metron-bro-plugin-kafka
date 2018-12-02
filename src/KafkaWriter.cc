@@ -199,22 +199,6 @@ bool KafkaWriter::DoFinish(double network_time)
 
     delete topic;
     delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
-    delete topic;
     delete producer;
     delete formatter;
     delete conf;
