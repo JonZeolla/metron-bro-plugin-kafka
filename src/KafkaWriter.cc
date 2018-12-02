@@ -200,7 +200,7 @@ bool KafkaWriter::DoFinish(double network_time)
     delete topic;
     delete producer;
     delete formatter;
-    delete formatter;
+    delete conf;
     delete conf;
     delete topic_conf;
     cout<<"dofinish"<<endl;
