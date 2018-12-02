@@ -67,10 +67,10 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend):
 
 KafkaWriter::~KafkaWriter()
 {
-//    delete topic;
+    delete topic;
     delete producer;
-//    delete formatter;
-    delete conf;
+    delete formatter;
+//    delete conf;
 //    delete topic_conf;
 }
 
@@ -196,10 +196,8 @@ bool KafkaWriter::DoFinish(double network_time)
         Error(Fmt("Unable to deliver %0d message(s)", producer->outq_len()));
     }
 
+    delete conf;
     delete topic_conf;
-    delete topic;
-    delete producer;
-    delete formatter;
 
     return success;
 }
