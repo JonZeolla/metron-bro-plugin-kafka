@@ -16,6 +16,7 @@
  */
 
 #include "KafkaWriter.h"
+#include <typeid>
 
 using namespace logging;
 using namespace writer;
@@ -197,11 +198,11 @@ bool KafkaWriter::DoFinish(double network_time)
         Error(Fmt("Unable to deliver %0d message(s)", producer->outq_len()));
     }
 
-    cout<<type_name<decltype(topic)>()<<endl;
+    cout<<typeid(topic).name()<<endl;
     delete topic;
-    cout<<type_name<decltype(topic)>()<<endl;
+    cout<<typeid(topic).name()<<endl;
     delete topic;
-    cout<<type_name<decltype(topic)>()<<endl;
+    cout<<typeid(topic).name()<<endl;
     delete producer;
     delete formatter;
     delete conf;
