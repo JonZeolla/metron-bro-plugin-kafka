@@ -29,7 +29,7 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend):
 {
   /**
    * We need thread-local copies of all user-defined settings coming from bro
-   * scripting land.  accessing these is not thread-safe and 'DoInit' is
+   * scripting land.  Accessing these is not thread-safe and 'DoInit' is
    * potentially accessed from multiple threads.
    */
 
@@ -70,16 +70,18 @@ KafkaWriter::KafkaWriter(WriterFrontend* frontend):
 
 KafkaWriter::~KafkaWriter()
 {
-  // Cleanup must happen in DoFinish, not in the destructor
+    // Cleanup must happen in DoFinish, not in the destructor
 }
 
 string KafkaWriter::GetConfigValue(const WriterInfo& info, const string name) const
 {
     map<const char*, const char*>::const_iterator it = info.config.find(name.c_str());
     if (it == info.config.end())
-        return string();
+      // return an empty string
+      return string();
     else
-        return it->second;
+      // return the key
+      return it->second;
 }
 
 /**
@@ -91,18 +93,11 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
     // Timeformat object, default to TS_EPOCH
     threading::formatter::JSON::TimeFormat tf = threading::formatter::JSON::TS_EPOCH;
 
-    // Allow overriding of the kafka topic via the Bro script constant 'topic_name'
-    // which can be applied when adding a new Bro log filter.
+    // Attempt to retrieve the topic_name config value
     topic_name_override = GetConfigValue(info, "topic_name");
 
-    if(!topic_name_override.empty()) {
-      // Override the topic name if 'topic_name' is specified in the log
-      // filter's $conf
-      topic_name = topic_name_override;
-    } else if(topic_name.empty()) {
-      // If no global 'topic_name' is defined, use the log stream's 'path'
-      topic_name = info.path;
-    }
+    // Select the appropriate topic name
+    topic_name = BifFunc::Kafka::bro_SelectTopicName(topic_name_override.c_str(), topic_name.c_str(), info.path);
 
     /**
      * Format the timestamps

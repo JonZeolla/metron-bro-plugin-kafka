@@ -23,3 +23,34 @@ const max_wait_on_shutdown: count;
 const tag_json: bool;
 const json_timestamps: JSON::TimestampFormat;
 const debug: string;
+
+## Returns the effective kafka topic name given the provided three contributing
+## configurations
+##
+## override: The override topic name.
+##
+## default: The default topic name.
+##
+## fallback: The fallback topic name.
+##
+## Returns: A string indicating the effective kafka topic name
+function SelectTopicName%(override: string, default: string, fallback: string%) : string
+	%{
+	if ( ! override.empty() ) {
+		/**
+		 * Allow overriding of the kafka topic via the Bro script constant
+		 * "topic_name" which can be applied in a Bro log filter's $conf
+		 */
+		return new StringVal(override);
+	} else if ( default.empty() ) {
+		// If no default topic name is defined, use the log filter's "path"
+		return new StringVal(fallback);
+	} else {
+		/**
+		 * When the default topic name is set and there is no override,
+		 * use the default
+		 */
+		return new StringVal(default);
+	}
+	%}
+
