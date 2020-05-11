@@ -184,7 +184,7 @@ event zeek_init() &priority=-10
 You may want to configure zeek to filter log messages with certain characteristics from being sent to your kafka topics.  For instance, Apache Metron currently doesn't support IPv6 source or destination IPs in the default enrichments, so it may be helpful to filter those log messages from being sent to kafka (although there are [multiple ways](#notes) to approach this).  In this example we will do that that, and are assuming a somewhat standard zeek kafka plugin configuration, such that:
  * All zeek logs are sent to the default `zeek` topic.
  * Each JSON message is tagged with the appropriate log type (such as `http`, `dns`, or `conn`), by setting `Kafka::tag_json` to true.
- * If the log message contains a 128 byte long source or destination IP address, the log is not sent to kafka.
+ * If the log message contains a 128 byte long source or destination IP address, the log should not be sent to kafka.
 
 ```
 @load packages/metron-bro-plugin-kafka/Apache/Kafka
@@ -192,35 +192,22 @@ redef Kafka::tag_json = T;
 
 event zeek_init() &priority=-10
 {
-    # handles HTTP
-    Log::add_filter(HTTP::LOG, [
-        $name = "kafka-http",
-        $writer = Log::WRITER_KAFKAWRITER,
-        $pred(rec: HTTP::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(
-            ["metadata.broker.list"] = "localhost:9092"
-        )
-    ]);
-
-    # handles DNS
-    Log::add_filter(DNS::LOG, [
-        $name = "kafka-dns",
-        $writer = Log::WRITER_KAFKAWRITER,
-        $pred(rec: DNS::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(
-            ["metadata.broker.list"] = "localhost:9092"
-        )
-    ]);
-
-    # handles Conn
-    Log::add_filter(Conn::LOG, [
-        $name = "kafka-conn",
-        $writer = Log::WRITER_KAFKAWRITER,
-        $pred(rec: Conn::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(
-            ["metadata.broker.list"] = "localhost:9092"
-        )
-    ]);
+    local logs: table[string] of record = {
+        ["conn"] = Conn::LOG,
+        ["dns"]  = DNS::LOG,
+        ["http"] = HTTP::LOG,
+    };
+    for (log, log_id in logs) {
+        local this_filter: Log::Filter = [
+            $name = "kafka-" + log,
+        		$pred(rec: log_id) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+            $writer = Log::WRITER_KAFKAWRITER,
+            $config = table(
+                ["metadata.broker.list"] = "localhost:9092"
+            ),
+        ];
+        Log::add_filter(log_id, this_filter);
+    }
 }
 ```
 
