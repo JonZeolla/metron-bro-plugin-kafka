@@ -106,39 +106,46 @@ The goal in this example is to send all HTTP and DNS records to a Kafka topic na
  * Any configuration value accepted by librdkafka can be added to the `kafka_conf` configuration table.  
  * The `topic_name` will default to send all records to a single Kafka topic called 'zeek'.
  * Defining `logs_to_send` will send the HTTP and DNS records to the brokers specified in your `Kafka::kafka_conf`.
+
+<div class="example">
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);
 redef Kafka::kafka_conf = table(
     ["metadata.broker.list"] = "server1.example.com:9092,server2.example.com:9092"
 );
 ```
+</div>
 
 ### Example 2 - Send all active logs
 
 This plugin has the ability send all active logs to the "zeek" kafka topic with the following configuration.
 
+<div class="example">
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::send_all_active_logs = T;
 redef Kafka::kafka_conf = table(
-    ["metadata.broker.list"] = "localhost:9092"
+    ["metadata.broker.list"] = "kafka:9092"
 );
 ```
+</div>
 
 ### Example 3 - Send all active logs with exclusions
 
 You can also specify a blacklist of zeek logs to ensure they aren't being sent to kafka regardless of the `Kafka::send_all_active_logs` and `Kafka::logs_to_send` configurations.  In this example, we will send all of the enabled logs except for the Conn log.
 
+<div class="example">
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::send_all_active_logs = T;
 redef Kafka::logs_to_exclude = set(Conn::LOG);
 redef Kafka::topic_name = "zeek";
 redef Kafka::kafka_conf = table(
-    ["metadata.broker.list"] = "localhost:9092"
+    ["metadata.broker.list"] = "kafka:9092"
 );
 ```
+</div>
 
 ### Example 4 - Send each zeek log to a unique topic
 
@@ -148,8 +155,9 @@ It is also possible to send each log stream to a uniquely named topic.  The goal
  * Any configuration value accepted by librdkafka can be added to the `$config` configuration table.  
  * Each log writer accepts a separate configuration table.
 
+<div class="example">
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::topic_name = "";
 redef Kafka::tag_json = T;
 
@@ -160,7 +168,7 @@ event zeek_init() &priority=-10
         $name = "kafka-http",
         $writer = Log::WRITER_KAFKAWRITER,
         $config = table(
-                ["metadata.broker.list"] = "localhost:9092"
+                ["metadata.broker.list"] = "kafka:9092"
         ),
         $path = "http"
     ];
@@ -171,13 +179,14 @@ event zeek_init() &priority=-10
         $name = "kafka-dns",
         $writer = Log::WRITER_KAFKAWRITER,
         $config = table(
-                ["metadata.broker.list"] = "localhost:9092"
+                ["metadata.broker.list"] = "kafka:9092"
         ),
         $path = "dns"
     ];
     Log::add_filter(DNS::LOG, dns_filter);
 }
 ```
+</div>
 
 ### Example 5 - Zeek log filtering
 
@@ -186,8 +195,9 @@ You may want to configure zeek to filter log messages with certain characteristi
  * Each JSON message is tagged with the appropriate log type (such as `http`, `dns`, or `conn`), by setting `Kafka::tag_json` to true.
  * If the log message contains a 128 byte long source or destination IP address, the log should not be sent to kafka.
 
+<div class="example">
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::tag_json = T;
 
 event zeek_init() &priority=-10
@@ -200,16 +210,17 @@ event zeek_init() &priority=-10
     for (log, log_id in logs) {
         local this_filter: Log::Filter = [
             $name = "kafka-" + log,
-        		$pred(rec: log_id) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+            $pred(rec: log_id) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
             $writer = Log::WRITER_KAFKAWRITER,
             $config = table(
-                ["metadata.broker.list"] = "localhost:9092"
+                ["metadata.broker.list"] = "kafka:9092"
             ),
         ];
         Log::add_filter(log_id, this_filter);
     }
 }
 ```
+</div>
 
 #### Notes
  * `logs_to_send` is mutually exclusive with `$pred`, thus for each log you want to set `$pred` on, you must individually setup a `Log::add_filter` and refrain from including that log in `logs_to_send`.
@@ -220,8 +231,9 @@ event zeek_init() &priority=-10
 
 You are able to send a single zeek log to multiple different kafka topics in the same kafka cluster by overriding the default topic (configured with `Kafka::topic_name`) by creating a custom zeek `Log::Filter`.  In this example, the DHCP, RADIUS, and DNS logs are sent to the "zeek" topic; the RADIUS log is duplicated to the "shew_zeek_radius" topic; and the DHCP log is duplicated to the "shew_zeek_dhcp" topic.
 
+<div class="example">
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::logs_to_send = set(DHCP::LOG, RADIUS::LOG, DNS::LOG);
 redef Kafka::topic_name = "zeek";
 redef Kafka::kafka_conf = table(
@@ -250,6 +262,7 @@ event zeek_init() &priority=-10
     Log::add_filter(DHCP::LOG, shew_dhcp_filter);
 }
 ```
+</div>
 
 _Note_:  Because `Kafka::tag_json` is set to True in this example, the value of `$path` is used as the tag for each `Log::Filter`. If you were to add a log filter with the same `$path` as an existing filter, Zeek will append "-N", where N is an integer starting at 2, to the end of the log path so that each filter has its own unique log path. For instance, the second instance of `conn` would become `conn-2`.
 
@@ -297,7 +310,7 @@ table.  The full set of valid librdkafka settings are available
 
 ```
 redef Kafka::kafka_conf = table(
-    ["metadata.broker.list"] = "localhost:9092",
+    ["metadata.broker.list"] = "kafka:9092",
     ["client.id"] = "zeek"
 );
 ```
@@ -388,7 +401,7 @@ ${KAFKA_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.Si
 
 The following is how the `${ZEEK_HOME}/share/zeek/site/local.zeek` looks:
 ```
-@load packages/metron-bro-plugin-kafka/Apache/Kafka
+@load packages
 redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);
 redef Kafka::topic_name = "zeek";
 redef Kafka::tag_json = T;

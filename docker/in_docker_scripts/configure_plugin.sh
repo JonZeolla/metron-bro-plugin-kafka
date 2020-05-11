@@ -67,14 +67,10 @@ for i in "$@"; do
   esac
 done
 
-echo "Configuring kafka plugin"
+echo "Applying generic Zeek configurations"
 {
-  echo "@load packages"
   echo "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG, Conn::LOG, DPD::LOG, FTP::LOG, Files::LOG, Known::CERTS_LOG, SMTP::LOG, SSL::LOG, Weird::LOG, Notice::LOG, DHCP::LOG, SSH::LOG, Software::LOG, RADIUS::LOG, X509::LOG, RFB::LOG, Stats::LOG, CaptureLoss::LOG, SIP::LOG);"
-  echo "redef Kafka::topic_name = \"${KAFKA_TOPIC}\";"
-  echo "redef Kafka::tag_json = T;"
-  echo "redef Kafka::kafka_conf = table([\"metadata.broker.list\"] = \"kafka:9092\");"
-  echo "redef Kafka::logs_to_exclude = set(Conn::LOG, DHCP::LOG);"
+  echo "redef Kafka::topic_name = \"${KAFKA_TOPIC}\";" # TODO Move this down to the examples, requires multiple kafka topics in e2e
   echo "redef Known::cert_tracking = ALL_HOSTS;"
   echo "redef Software::asset_tracking = ALL_HOSTS;"
 } >> /usr/local/zeek/share/zeek/site/local.zeek
