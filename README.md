@@ -192,35 +192,22 @@ redef Kafka::tag_json = T;
 
 event zeek_init() &priority=-10
 {
-    # handles HTTP
-    Log::add_filter(HTTP::LOG, [
-        $name = "kafka-http",
-        $writer = Log::WRITER_KAFKAWRITER,
-        $pred(rec: HTTP::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(
-            ["metadata.broker.list"] = "localhost:9092"
-        )
-    ]);
-
-    # handles DNS
-    Log::add_filter(DNS::LOG, [
-        $name = "kafka-dns",
-        $writer = Log::WRITER_KAFKAWRITER,
-        $pred(rec: DNS::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(
-            ["metadata.broker.list"] = "localhost:9092"
-        )
-    ]);
-
-    # handles Conn
-    Log::add_filter(Conn::LOG, [
-        $name = "kafka-conn",
-        $writer = Log::WRITER_KAFKAWRITER,
-        $pred(rec: Conn::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(
-            ["metadata.broker.list"] = "localhost:9092"
-        )
-    ]);
+    local logs: table[string] of record = {
+        ["conn"] = Conn::LOG,
+        ["dns"]  = DNS::LOG,
+        ["http"] = HTTP::LOG,
+    };
+    for (log, log_id in logs) {
+        local this_filter: Log::Filter = [
+            $name = "kafka-" + log,
+            $pred(rec: log_id) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+            $writer = Log::WRITER_KAFKAWRITER,
+            $config = table(
+                ["metadata.broker.list"] = "localhost:9092"
+            ),
+        ];
+        Log::add_filter(log_id, this_filter);
+    }
 }
 ```
 
