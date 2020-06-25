@@ -20,45 +20,33 @@
 shopt -s nocasematch
 set -u # nounset
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
 #
-# Executes the configure_plugin.sh in the docker container
+# Runs a kafka container to retrieve the list of topics
 #
 
 function help {
   echo " "
   echo "usage: ${0}"
-  echo "    --container-name                [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1"
-  echo "    --kafka-topic                   [OPTIONAL] The kafka topic to create. Default: zeek"
+  echo "    --network-name                  [OPTIONAL] The Docker network name. Default: metron-bro-plugin-kafka_default"
   echo "    -h/--help                       Usage information."
-  echo " "
   echo " "
 }
 
-CONTAINER_NAME=metron-bro-plugin-kafka_zeek_1
-KAFKA_TOPIC=zeek
+NETWORK_NAME=metron-bro-plugin-kafka_default
 
-# Handle command line options
+# handle command line options
 for i in "$@"; do
   case $i in
   #
-  # CONTAINER_NAME
+  # NETWORK_NAME
   #
-  #   --container-name
+  #   --network-name
   #
-    --container-name=*)
-      CONTAINER_NAME="${i#*=}"
-      shift # past argument=value
-    ;;
-  #
-  # KAFKA_TOPIC
-  #
-  #   --kafka-topic
-  #
-    --kafka-topic=*)
-      KAFKA_TOPIC="${i#*=}"
+    --network-name=*)
+      NETWORK_NAME="${i#*=}"
       shift # past argument=value
     ;;
   #
@@ -69,6 +57,7 @@ for i in "$@"; do
       exit 0
       shift # past argument with no value
     ;;
+
   #
   # Unknown option
   #
@@ -80,12 +69,6 @@ for i in "$@"; do
   esac
 done
 
-echo "Running docker_execute_configure_plugin.sh with "
-echo "CONTAINER_NAME = ${CONTAINER_NAME}"
-echo "KAFKA_TOPIC = ${KAFKA_TOPIC}"
-echo "==================================================="
-
-docker exec -w /root "${CONTAINER_NAME}" bash -c "/root/built_in_scripts/configure_plugin.sh --kafka-topic=\"${KAFKA_TOPIC}\""
-
-echo "configured the kafka plugin"
+docker run --rm --network "${NETWORK_NAME}" metron-bro-plugin-kafka_kafka \
+  kafka-topics.sh --list --zookeeper zookeeper:2181
 

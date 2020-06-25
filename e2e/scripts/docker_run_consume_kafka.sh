@@ -20,33 +20,59 @@
 shopt -s nocasematch
 set -u # nounset
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
+
+#
+# Runs a kafka container with the console consumer for the appropriate topic.
+# The consumer should quit when it has read all of the messages available on
+# the given partition.
+#
 
 function help {
   echo " "
   echo "usage: ${0}"
-  echo "    --container-name                [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_kafka-1_1"
-  echo "    --kafka-topic                   [OPTIONAL] The kafka topic to create. Default: zeek"
-  echo "    --partitions                    [OPTIONAL] The number of kafka partitions to create. Default: 2"
+  echo "    --network-name                  [OPTIONAL] The Docker network name. Default: metron-bro-plugin-kafka_default"
+  echo "    --offset                        [OPTIONAL] The kafka offset to read from. Default: 0"
+  echo "    --partition                     [OPTIONAL] The kafka partition to read from. Default: 0"
+  echo "    --kafka-topic                   [OPTIONAL] The kafka topic to consume from. Default: zeek"
   echo "    -h/--help                       Usage information."
   echo " "
 }
 
-CONTAINER_NAME="metron-bro-plugin-kafka_kafka-1_1"
+NETWORK_NAME=metron-bro-plugin-kafka_default
+OFFSET=0
+PARTITION=0
 KAFKA_TOPIC=zeek
-PARTITIONS=2
 
 # handle command line options
 for i in "$@"; do
   case $i in
   #
-  # CONTAINER_NAME
+  # NETWORK_NAME
   #
-  #   --container-name
+  #   --network-name
   #
-    --container-name=*)
-      CONTAINER_NAME="${i#*=}"
+    --network-name=*)
+      NETWORK_NAME="${i#*=}"
+      shift # past argument=value
+    ;;
+  #
+  # OFFSET
+  #
+  #   --offset
+  #
+    --offset=*)
+      OFFSET="${i#*=}"
+      shift # past argument=value
+    ;;
+  #
+  # PARTITION
+  #
+  #   --partition
+  #
+    --partition=*)
+      PARTITION="${i#*=}"
       shift # past argument=value
     ;;
   #
@@ -59,15 +85,6 @@ for i in "$@"; do
       shift # past argument=value
     ;;
   #
-  # PARTITIONS
-  #
-  #   --partitions
-  #
-    --partitions=*)
-      PARTITIONS="${i#*=}"
-      shift # past argument=value
-    ;;
-  #
   # -h/--help
   #
     -h | --help)
@@ -75,7 +92,6 @@ for i in "$@"; do
       exit 0
       shift # past argument with no value
     ;;
-
   #
   # Unknown option
   #
@@ -87,12 +103,6 @@ for i in "$@"; do
   esac
 done
 
-echo "Running docker_execute_create_topic_in_kafka.sh with "
-echo "CONTAINER_NAME = ${CONTAINER_NAME}"
-echo "KAFKA_TOPIC = ${KAFKA_TOPIC}"
-echo "PARTITIONS = ${PARTITIONS}"
-echo "==================================================="
-
-docker exec -w /opt/kafka/bin/ "${CONTAINER_NAME}" \
-  bash -c "JMX_PORT= ./kafka-topics.sh --create --topic ${KAFKA_TOPIC} --replication-factor 1 --partitions ${PARTITIONS} --zookeeper zookeeper:2181"
+docker run --rm --network "${NETWORK_NAME}" metron-bro-plugin-kafka_kafka \
+  kafka-console-consumer.sh --topic "${KAFKA_TOPIC}" --offset "${OFFSET}" --partition "${PARTITION}" --bootstrap-server kafka-1:9092 --timeout-ms 5000
 

@@ -29,7 +29,7 @@ testing scripts to be added to a pull request, and subsequently to a test suite.
 │   └── kafka
 │   └── zookeeper
 ├── data
-├── in_docker_scripts
+├── in_docker
 ├── scripts
 └── test_output
 ```
@@ -37,9 +37,9 @@ testing scripts to be added to a pull request, and subsequently to a test suite.
   - `zeek`: The directory for our zeek container, used for building zeek, the librdkafka, and our plugin, as well as running zeek.
   - `kafka`: The directory for our kafka container.
   - `zookeeper`: The directory for our zookeeper container.
-- `data`: The default path for pcap data to be used in tests.
-- `in_docker_scripts`: This directory is mapped to the zeek docker container as /root/built_in_scripts.  These represent the library of scripts we provide to be run in the docker container.
-- `scripts`: These are the scripts that are run on the host for creating the docker bits, running containers, running or executing commands against containers ( such as executing one of the built_in_scripts ), and cleaning up resources.
+- `data`: The default path for data to be used in tests.
+- `in_docker`: This directory is copied into the zeek docker container at /root/code/e2e/in_docker.  These represent files and scripts we provide to be copied into the docker image.
+- `scripts`: These are the scripts that are run on the host for creating the docker bits, running containers, running or executing commands against containers ( such as executing a script in in_docker), and cleaning up resources.
 - `test_output`: Directory where the zeek logs and kafka logs per test/pcap are stored.
 
 
@@ -53,10 +53,6 @@ testing scripts to be added to a pull request, and subsequently to a test suite.
 
 - `build_plugin.sh`: Runs `zkg` to build and install the provided version of the plugin.
 - `configure_plugin.sh`: Configures the plugin for the kafka container, and routes all traffic types.
-  ###### Parameters
-  ```bash
-  --kafka-topic                  [OPTIONAL] The kafka topic to configure. Default: zeek"
-  ```
 - `process_data_file.sh`: Runs `zeek -r` on the passed file
 
 
@@ -64,11 +60,9 @@ testing scripts to be added to a pull request, and subsequently to a test suite.
 
 ```bash
 ├── analyze_results.sh
-├── docker_execute_build_plugin.sh
-├── docker_execute_configure_plugin.sh
 ├── docker_execute_create_topic_in_kafka.sh
 ├── docker_execute_process_data_file.sh
-├── docker_execute_shell.sh
+├── docker_execute_run_e2e_btests.sh
 ├── docker_run_consume_kafka.sh
 ├── docker_run_get_offset_kafka.sh
 ├── download_sample_pcaps.sh
@@ -81,33 +75,22 @@ testing scripts to be added to a pull request, and subsequently to a test suite.
   ```bash
   --test-directory               [REQUIRED] The directory for the tests
   ```
-- `docker_execute_build_plugin.sh`: Executes `build_plugin.sh` in the zeek container
-  ###### Parameters
-  ```bash
-   --container-name              [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1
-  ```
-- `docker_execute_configure_plugin.sh`: Executes `configure_plugin.sh` in the zeek container
-  ###### Parameters
-  ```bash
-  --container-name               [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1
-  ```
-- `docker_execute_create_topic_in_kafka.sh`: Creates the specified kafka topic in the kafka container
+- `docker_execute_create_topic_in_kafka.sh`: Creates the specified kafka topic in the provided container
   ###### Parameters
   ```bash
   --container-name               [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_kafka-1_1
   --kafka-topic                  [OPTIONAL] The kafka topic to create. Default: zeek
   --partitions                   [OPTIONAL] The number of kafka partitions to create. Default: 2
   ```
-- `docker_execute_process_data_file.sh`: Executes `process_data_file.sh` in the zeek container
-  ###### Parameters
-   ```bash
-   --container-name              [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1
-   ```
-- `docker_execute_shell.sh`: `docker execute -i -t bash` to get a shell in a given container
+- `docker_execute_process_data_file.sh`: Executes `process_data_file.sh` in the provided container
   ###### Parameters
   ```bash
-  --container-name               [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1
+  --container-name              [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1
   ```
+- `docker_execute_run_e2e_btests.sh`: Runs the e2e btests in the provided container
+  ```bash
+  --container-name               [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek-1_1
+   ```
 - `docker_run_consume_kafka.sh`: Runs an instance of the kafka container, with the console consumer `kafka-console-consumer.sh --topic $KAFKA_TOPIC --offset $OFFSET --partition $PARTITION --bootstrap-server kafka-1:9092`
   ###### Parameters
   ```bash
@@ -205,10 +188,8 @@ At this point the containers are up and running in the background.
 
 Other scripts may then be used to do your testing, for example running:
 ```bash
-./scripts/docker_execute_shell.sh
+docker exec -it metron-bro-plugin-kafka_zeek bash
 ```
-
-> NOTE: If the scripts are run repeatedly, and there is no change in zeek or the librdkafka, the line `./run_end_to_end.sh` can be replaced by `./run_end_to_end.sh --skip-docker-build`, which uses the `--skip-docker-build` flag to not rebuild the containers, saving the significant time of rebuilding zeek and librdkafka.
 
 > NOTE: After you are done, you must call the `finish_end_to_end.sh` script to cleanup.
 
@@ -218,7 +199,7 @@ Other scripts may then be used to do your testing, for example running:
 ```bash
 --skip-docker-build             [OPTIONAL] Skip build of zeek docker machine.
 --no-pcaps                      [OPTIONAL] Do not run pcaps.
---data-path                     [OPTIONAL] The pcap data path. Default: ./data
+--data-path                     [OPTIONAL] The data path. Default: ./data
 --kafka-topic                   [OPTIONAL] The kafka topic name to use. Default: zeek
 --partitions                    [OPTIONAL] The number of kafka partitions to create. Default: 2
 --plugin-version                [OPTIONAL] The plugin version. Default: the current branch name

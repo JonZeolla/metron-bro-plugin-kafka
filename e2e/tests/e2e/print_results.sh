@@ -20,46 +20,35 @@
 shopt -s nocasematch
 set -u # nounset
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
 #
-# Executes the build_plugin.sh script in the container
+# Prints all the results.csv files
 #
 
 function help {
   echo " "
   echo "usage: ${0}"
-  echo "    --container-name                [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1"
-  echo "    --plugin-version                [REQUIRED] The plugin version."
-  echo "    -h/--help                       Usage information."
+  echo "    --test-directory           [REQUIRED] The directory for the tests"
+  echo "    -h/--help                  Usage information."
   echo " "
   echo " "
 }
 
-CONTAINER_NAME="metron-bro-plugin-kafka_zeek_1"
-PLUGIN_VERSION=
+SCRIPT_NAME=$(basename -- "$0")
+TEST_DIRECTORY=
 
-# handle command line options
+# Handle command line options
 for i in "$@"; do
   case $i in
   #
-  # CONTAINER_NAME
+  # TEST_DIRECTORY
   #
-  #   --container-name
+  #   --test-directory
   #
-    --container-name=*)
-      CONTAINER_NAME="${i#*=}"
-      shift # past argument=value
-    ;;
-
-  #
-  # PLUGIN_VERSION
-  #
-  #   --plugin-version
-  #
-    --plugin-version=*)
-      PLUGIN_VERSION="${i#*=}"
+    --test-directory=*)
+      TEST_DIRECTORY="${i#*=}"
       shift # past argument=value
     ;;
 
@@ -83,16 +72,21 @@ for i in "$@"; do
   esac
 done
 
-if [[ -z "${PLUGIN_VERSION}" ]]; then
-  echo "PLUGIN_VERSION must be passed"
+if [[ -z "$TEST_DIRECTORY" ]]; then
+  echo "$TEST_DIRECTORY must be passed"
   exit 1
 fi
 
-echo "Running build_plugin with "
-echo "CONTAINER_NAME = $CONTAINER_NAME"
+
+echo "Running ${SCRIPT_NAME} with"
+echo "TEST_DIRECTORY = $TEST_DIRECTORY"
 echo "==================================================="
 
-docker exec -w /root "${CONTAINER_NAME}" bash -c "/root/built_in_scripts/build_plugin.sh --plugin-version=${PLUGIN_VERSION}"
-
-echo "Built the plugin"
+# Move over to the e2e area
+cd "${TEST_DIRECTORY}" || exit 1
+find "${TEST_DIRECTORY}" -name "results.csv" \
+  -exec echo "-->" '{}' \; \
+  -exec column -t -s ',' '{}' \; \
+  -exec echo "========================================================" \; \
+  -exec echo "" \;
 

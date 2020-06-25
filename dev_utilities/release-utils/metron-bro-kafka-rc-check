@@ -34,10 +34,10 @@ METRON_DIST=${APACHE_REPO}"dev/metron/metron-bro-plugin-kafka/"
 METRON_KEYS=${APACHE_REPO}"release/metron/KEYS"
 
 #
-#  runs the package kafka plugin's docker based tests
+#  runs the package kafka plugin's e2e tests
 #
-function run_package_docker {
-    cd docker &> /dev/null || { echo "failed to change directory to docker" ; exit 1; }
+function run_package_e2e {
+    cd e2e &> /dev/null || { echo "failed to change directory to e2e" ; exit 1; }
     ./run_end_to_end.sh
 
     rc=$?; if [[ ${rc} != 0 ]]; then
@@ -48,10 +48,10 @@ function run_package_docker {
 }
 
 #
-#   runs the finish package docker script to cleanup
+#   runs the finish package e2e script to cleanup
 #
-function finish_package_docker {
-    cd docker &> /dev/null || { echo "failed to change directory to docker"; exit 1; }
+function finish_package_e2e {
+    cd e2e &> /dev/null || { echo "failed to change directory to e2e"; exit 1; }
     ./finish_end_to_end.sh
 
     rc=$?; if [[ ${rc} != 0 ]]; then
@@ -213,10 +213,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         read -p "  no metron-bro-plugin-kafka docker containers are running, ready to proceed [yN] " -n 1 -r
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             cd "apache-metron-bro-plugin-kafka_$PLUGIN_VERSION-$RC" || exit 1
-            run_package_docker
-            finish_package_docker
+            run_package_e2e
+            finish_package_e2e
         else
-            echo "  when you are ready and the containers are stopped, please cd into the docker"
+            echo "  when you are ready and the containers are stopped, please cd into the e2e"
             echo "  directory and execute the run_end_to_end.sh script"
         fi
   cd .. || exit 1

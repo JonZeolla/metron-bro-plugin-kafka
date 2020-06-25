@@ -1,0 +1,1 @@
+/^```zeek,example$/,/^```$/ { print }

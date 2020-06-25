@@ -17,19 +17,22 @@
 #  limitations under the License.
 #
 
-#
-# This script should be run _after_ run_end_to_end.sh when you are finished with your testing and the containers.
-# Do not run this if you plan on running docker_execute_shell.sh for example
-#
-
+shopt -s nocasematch
+shopt -s globstar nullglob
 shopt -s nocasematch
 set -u # nounset
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
-PROJECT_NAME="metron-bro-plugin-kafka"
+#
+# Perform baseline configuration of the Zeek docker container
+#
 
-# Stop docker compose
-COMPOSE_PROJECT_NAME="${PROJECT_NAME}" docker-compose down
+# Load directory where the test should be placed
+echo '@load test' >> /usr/local/zeek/share/zeek/site/local.zeek
+
+# Comment out the load statement for "log-hostcerts-only.zeek" in zeek's
+# default local.zeek as of 3.1.2 in order to log all certificates to x509.log
+sed -i 's%^@load protocols/ssl/log-hostcerts-only%#&%' /usr/local/zeek/share/zeek/site/local.zeek
 

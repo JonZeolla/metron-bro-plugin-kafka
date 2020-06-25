@@ -1,0 +1,7 @@
+# Ignore these folders
+build
+e2e
+
+# Exceptions
+!e2e/containers/zeek
+!e2e/tests

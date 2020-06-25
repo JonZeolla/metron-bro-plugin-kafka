@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2010
 
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,39 +17,47 @@
 #  limitations under the License.
 #
 
-
-shopt -s nocasematch
-shopt -s globstar nullglob
 shopt -s nocasematch
 set -u # nounset
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
-PCAP_FILE_NAME=
-OUTPUT_DIRECTORY_NAME=
+#
+# Runs the e2e btests in the specified container
+#
 
-# Handle command line options
+function help {
+  echo " "
+  echo "usage: ${0}"
+  echo "    --container-name                [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1"
+  echo "    -h/--help                       Usage information."
+  echo " "
+  echo " "
+}
+
+CONTAINER_NAME=metron-bro-plugin-kafka_zeek_1
+
+# handle command line options
 for i in "$@"; do
   case $i in
   #
-  # PCAP_FILE_NAME
+  # CONTAINER_NAME
   #
-  #   --pcap-file-name
+  #   --container-name
   #
-    --pcap-file-name=*)
-      PCAP_FILE_NAME="${i#*=}"
+    --container-name=*)
+      CONTAINER_NAME="${i#*=}"
       shift # past argument=value
     ;;
 
   #
-  # OUTPUT_DIRECTORY_NAME
+  # -h/--help
   #
-  #   --output-directory-name
-  #
-    --output-directory-name=*)
-      OUTPUT_DIRECTORY_NAME="${i#*=}"
-      shift # past argument=value
+    -h | --help)
+      help
+      exit 0
+      shift # past argument with no value
     ;;
 
   #
@@ -64,16 +71,10 @@ for i in "$@"; do
   esac
 done
 
-echo "PCAP_FILE_NAME = ${PCAP_FILE_NAME}"
-echo "OUTPUT_DIRECTORY_NAME = ${OUTPUT_DIRECTORY_NAME}"
+echo "Running the btests on"
+echo "CONTAINER_NAME = ${CONTAINER_NAME}"
+echo "==================================================="
 
-echo "================================"
-if [ ! -d /root/data ]; then
-  echo "DATA_PATH is not available"
-  exit 1
-fi
-
-cd /root/test_output/"${OUTPUT_DIRECTORY_NAME}" || exit 1
-find /root/data -type f -name "${PCAP_FILE_NAME}" -print0 | xargs -0 zeek /usr/local/zeek/share/zeek/site/local.zeek -C -r
-echo "done with ${PCAP_FILE_NAME}"
+# TODO
+docker exec -w /root/code/e2e/tests/ "${CONTAINER_NAME}" bash -c "btest -d"
 

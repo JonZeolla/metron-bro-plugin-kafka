@@ -14,6 +14,8 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_LISTENERS=PLAINTEXT://kafka-1:9092
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_NUM_PARTITIONS=2
   kafka-2:
     build: containers/kafka
     image: metron-bro-plugin-kafka_kafka:latest
@@ -25,12 +27,15 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_LISTENERS=PLAINTEXT://kafka-2:9092
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_NUM_PARTITIONS=2
   zeek:
     build:
-      context: containers/zeek
+      context: ../
       args:
         ZEEK_VERSION: "3.1.3"
         LIBRDKAFKA_VERSION: "1.4.2"
+        PLUGIN_VERSION: "${PLUGIN_VERSION}"
     image: metron-bro-plugin-kafka_zeek:latest
     depends_on:
       zookeeper:
@@ -42,6 +47,7 @@ services:
     volumes:
       - "${DATA_PATH}:/root/data"
       - "${TEST_OUTPUT_PATH}:/root/test_output"
-      - "${PLUGIN_ROOT_DIR}:/root/code"
-      - "${OUR_SCRIPTS_PATH}:/root/built_in_scripts"
+      - "${TEST_PATH}:/root/tests"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     tty: true
+

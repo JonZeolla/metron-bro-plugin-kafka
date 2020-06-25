@@ -14,32 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-# Convenience Makefile providing a few common top-level targets.
-#
 
-cmake_build_dir=build
-arch=`uname -s | tr A-Z a-z`-`uname -m`
-
-all: build-it
-
-build-it:
-	@test -e $(cmake_build_dir)/config.status || ./configure
-	-@test -e $(cmake_build_dir)/CMakeCache.txt && \
-      test $(cmake_build_dir)/CMakeCache.txt -ot `cat $(cmake_build_dir)/CMakeCache.txt | grep ZEEK_DIST | cut -d '=' -f 2`/build/CMakeCache.txt && \
-      echo Updating stale CMake cache && \
-      touch $(cmake_build_dir)/CMakeCache.txt
-
-	( cd $(cmake_build_dir) && make )
-
-install:
-	( cd $(cmake_build_dir) && make install )
-
-clean:
-	( cd $(cmake_build_dir) && make clean )
-
-distclean:
-	rm -rf $(cmake_build_dir)
-
-test:
-	make -C tests
-
+redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG, Conn::LOG, DPD::LOG, FTP::LOG, Files::LOG, Known::CERTS_LOG, SMTP::LOG, SSL::LOG, Weird::LOG, Notice::LOG, DHCP::LOG, SSH::LOG, Software::LOG, RADIUS::LOG, X509::LOG, RFB::LOG, Stats::LOG, CaptureLoss::LOG, SIP::LOG);
+redef Kafka::topic_name = "zeek";
+redef Kafka::tag_json = T;
+redef Kafka::kafka_conf = table(["metadata.broker.list"] = "kafka-1:9092,kafka-2:9092");
+redef Kafka::logs_to_exclude = set(Conn::LOG, DHCP::LOG);
+redef Known::cert_tracking = ALL_HOSTS;
+redef Software::asset_tracking = ALL_HOSTS;

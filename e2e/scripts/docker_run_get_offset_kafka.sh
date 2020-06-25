@@ -20,61 +20,46 @@
 shopt -s nocasematch
 set -u # nounset
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
 #
-# Executes the process_data_dir.sh script in the container
+# Runs a kafka container to retrieve the offset for the provided topic
 #
 
 function help {
   echo " "
   echo "usage: ${0}"
-  echo "    --container-name                [OPTIONAL] The Docker container name. Default: metron-bro-plugin-kafka_zeek_1"
-  echo "    --pcap-file-name                [REQUIRED] The name of the pcap file"
-  echo "    --output-directory-name         [REQUIRED] The name of the output directory"
+  echo "    --network-name                  [OPTIONAL] The Docker network name. Default: metron-bro-plugin-kafka_default"
+  echo "    --kafka-topic                   [OPTIONAL] The kafka topic to pull the offset from. Default: zeek"
   echo "    -h/--help                       Usage information."
-  echo " "
   echo " "
 }
 
-CONTAINER_NAME=metron-bro-plugin-kafka_zeek_1
-PCAP_FILE_NAME=
-OUTPUT_DIRECTORY_NAME=
+NETWORK_NAME=metron-bro-plugin-kafka_default
+KAFKA_TOPIC=zeek
 
-# Handle command line options
+# handle command line options
 for i in "$@"; do
   case $i in
   #
-  # CONTAINER_NAME
+  # NETWORK_NAME
   #
-  #   --container-name
+  #   --network-name
   #
-    --container-name=*)
-      CONTAINER_NAME="${i#*=}"
+    --network-name=*)
+      NETWORK_NAME="${i#*=}"
       shift # past argument=value
     ;;
-
   #
-  # PCAP_FILE_NAME
+  # KAFKA_TOPIC
   #
-  #   --pcap-file-name
+  #   --kafka-topic
   #
-    --pcap-file-name=*)
-      PCAP_FILE_NAME="${i#*=}"
+    --kafka-topic=*)
+      KAFKA_TOPIC="${i#*=}"
       shift # past argument=value
     ;;
-
-  #
-  # OUTPUT_DIRECTORY_NAME
-  #
-  #   --output-directory-name
-  #
-    --output-directory-name=*)
-      OUTPUT_DIRECTORY_NAME="${i#*=}"
-      shift # past argument=value
-    ;;
-
   #
   # -h/--help
   #
@@ -95,16 +80,6 @@ for i in "$@"; do
   esac
 done
 
-echo "Running docker_execute_process_data_dir with "
-echo "CONTAINER_NAME = $CONTAINER_NAME"
-echo "PCAP_FILE_NAME = ${PCAP_FILE_NAME}"
-echo "OUTPUT_DIRECTORY_NAME = ${OUTPUT_DIRECTORY_NAME}"
-echo "==================================================="
-
-echo "executing process_data_file.sh in the zeek docker container"
-echo " "
-
-docker exec -w /root "${CONTAINER_NAME}" bash -c "built_in_scripts/process_data_file.sh --pcap-file-name=${PCAP_FILE_NAME} --output-directory-name=${OUTPUT_DIRECTORY_NAME}"
-
-echo "done processing ${PCAP_FILE_NAME}"
+docker run --rm --network "${NETWORK_NAME}" metron-bro-plugin-kafka_kafka \
+  kafka-run-class.sh kafka.tools.GetOffsetShell --topic "${KAFKA_TOPIC}" --broker-list "kafka-1:9092,kafka-2:9092"
 

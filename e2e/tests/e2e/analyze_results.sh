@@ -20,7 +20,7 @@
 shopt -s nocasematch
 #set -u # nounset disabled
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
 declare -r txtDEFAULT='\033[0m'
@@ -188,7 +188,7 @@ function print_log_comparison_insights
 }
 
 ## Main
-# Move over to the docker area
+# Move over to the e2e area
 cd "${TEST_DIRECTORY}" || exit 1
 # Get a list of results files
 RESULTS_FILES=$(find "${TEST_DIRECTORY}" -name "results.csv")

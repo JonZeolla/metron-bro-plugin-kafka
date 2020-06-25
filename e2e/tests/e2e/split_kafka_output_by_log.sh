@@ -20,7 +20,7 @@
 
 shopt -s nocasematch
 set -e # errexit
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
 #
@@ -82,7 +82,7 @@ echo "Running ${SCRIPT_NAME} with"
 echo "LOG_DIRECTORY = $LOG_DIRECTORY"
 echo "==================================================="
 
-# Move over to the docker area
+# Move over to the e2e area
 cd "${LOG_DIRECTORY}" || exit 1
 
 # for each log file, that is NOT KAFKA_OUTPUT_FILE we want to get the name

@@ -22,7 +22,7 @@ shopt -s globstar nullglob
 shopt -s nocasematch
 set -u # nounset
 # set -e (errexit) omitted to enable printfiles function call
-set -E # errtrap
+set -E # errtrace
 set -o pipefail
 
 #

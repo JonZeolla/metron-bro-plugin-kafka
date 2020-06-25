@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,32 +16,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-# Convenience Makefile providing a few common top-level targets.
+
+#
+# This script should be run _after_ run_end_to_end.sh when you are finished with your testing and the containers.
+# Do not run this if you plan on running docker_execute_shell.sh for example
 #
 
-cmake_build_dir=build
-arch=`uname -s | tr A-Z a-z`-`uname -m`
+shopt -s nocasematch
+set -u # nounset
+set -e # errexit
+set -E # errtrace
+set -o pipefail
 
-all: build-it
+PROJECT_NAME="metron-bro-plugin-kafka"
 
-build-it:
-	@test -e $(cmake_build_dir)/config.status || ./configure
-	-@test -e $(cmake_build_dir)/CMakeCache.txt && \
-      test $(cmake_build_dir)/CMakeCache.txt -ot `cat $(cmake_build_dir)/CMakeCache.txt | grep ZEEK_DIST | cut -d '=' -f 2`/build/CMakeCache.txt && \
-      echo Updating stale CMake cache && \
-      touch $(cmake_build_dir)/CMakeCache.txt
-
-	( cd $(cmake_build_dir) && make )
-
-install:
-	( cd $(cmake_build_dir) && make install )
-
-clean:
-	( cd $(cmake_build_dir) && make clean )
-
-distclean:
-	rm -rf $(cmake_build_dir)
-
-test:
-	make -C tests
+# Stop docker compose
+COMPOSE_PROJECT_NAME="${PROJECT_NAME}" docker-compose down
 
